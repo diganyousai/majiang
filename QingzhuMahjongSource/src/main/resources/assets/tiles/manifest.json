@@ -1,0 +1,183 @@
+﻿{
+    "project":  "https://github.com/lietxia/mahjong_graphic",
+    "commit":  "3e275804ff58325306710bef3a7406860444bc6a",
+    "style":  "default style / vertical; back b_02",
+    "notes":  "Only 34 standard faces and one back. Upstream 5z=white, 6z=green, 7z=red; engine 31=red, 32=green, 33=white.",
+    "files":  [
+                  {
+                      "file":  "1m.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/1m.png",
+                      "sha256":  "fd9c772bc5d7ad22ed45407bf45c3c3d45d09ea1073b64bd7be2ab994d1186f3"
+                  },
+                  {
+                      "file":  "2m.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/2m.png",
+                      "sha256":  "88b43fd20dffbaee5d0914243daddb8299a8535d6a1b21eccd1cbcaaefe315f9"
+                  },
+                  {
+                      "file":  "3m.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/3m.png",
+                      "sha256":  "f02e272854058ceb4db297ae49905261047458d5085170132d79510f6ed69739"
+                  },
+                  {
+                      "file":  "4m.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/4m.png",
+                      "sha256":  "70bbd90bd1334f80f27119eb9ac2395adc318f8b0c8ddaeff45362b85beed702"
+                  },
+                  {
+                      "file":  "5m.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/5m.png",
+                      "sha256":  "e871f16d94941a6d4929d9e6da41dd65b46b85e6c5e0cd935dd37ab568df37fe"
+                  },
+                  {
+                      "file":  "6m.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/6m.png",
+                      "sha256":  "2926d78805f0b891e9028d2a02f1a2b6ec02b3e4844d4e1399ea6341b8dc51cf"
+                  },
+                  {
+                      "file":  "7m.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/7m.png",
+                      "sha256":  "9dd1407dfc8a8a5da99e1b78a84e83e5bd4cd28577a3935cdfae5dcb26a75409"
+                  },
+                  {
+                      "file":  "8m.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/8m.png",
+                      "sha256":  "700420bb022c0ceb5e3697f84f6793022693c5a146aa048a6fd2ca2dd95964ec"
+                  },
+                  {
+                      "file":  "9m.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/9m.png",
+                      "sha256":  "cbc23ee00cc0a01fe41ce780a5720a8c51984e195a0a50ee5ac5cf06ea7cf22b"
+                  },
+                  {
+                      "file":  "1p.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/1p.png",
+                      "sha256":  "0bdec6513fdbb887418c004591dff501d72cd357a00c75e436bc285547a7936f"
+                  },
+                  {
+                      "file":  "2p.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/2p.png",
+                      "sha256":  "6765fc17dc542c47f222cd1272793f35f897b557b2521c9f369a2b680e2eee43"
+                  },
+                  {
+                      "file":  "3p.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/3p.png",
+                      "sha256":  "83c6e49d71217e60a97adb1479d016a2dd38d05604ab23a6c8140689ee237cca"
+                  },
+                  {
+                      "file":  "4p.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/4p.png",
+                      "sha256":  "d8ca067360451f748b1d0df26c63902cb5994bd724c4b6c7f52d54bcd52c77a9"
+                  },
+                  {
+                      "file":  "5p.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/5p.png",
+                      "sha256":  "c444c09cd627f227a00a6ec4dcfa0ab00aadd698efa730c6c14a40a7cc3a2f54"
+                  },
+                  {
+                      "file":  "6p.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/6p.png",
+                      "sha256":  "b1adfef09f846af2beb59b4fbb3182b0db3a6aaf49ac63199aa186ed5035ad10"
+                  },
+                  {
+                      "file":  "7p.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/7p.png",
+                      "sha256":  "a6adde78ed04bdb2351c5b04789dda5760d0ac81539eb5931f0e7f90c786f628"
+                  },
+                  {
+                      "file":  "8p.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/8p.png",
+                      "sha256":  "249396e0a303af852b71a63619da3aa4b2bdf823f4f2b0103bab4eba86327499"
+                  },
+                  {
+                      "file":  "9p.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/9p.png",
+                      "sha256":  "035dcff72017b93349f24fd0b0ad1c1893def169db4451633ccbf76762a74336"
+                  },
+                  {
+                      "file":  "1s.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/1s.png",
+                      "sha256":  "a55f3a17e6a99b89ae12d55481d94b57baa99a6f581c848cf0fc178ba58a70b6"
+                  },
+                  {
+                      "file":  "2s.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/2s.png",
+                      "sha256":  "6279fe9ff35ebd4400f8a0e3d2fbcca7597b37fc95671a324196eb63a983adab"
+                  },
+                  {
+                      "file":  "3s.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/3s.png",
+                      "sha256":  "0150700a3951dffdfe9dd84cd9fc54d0ed178305e6926f619bd73a12426ce248"
+                  },
+                  {
+                      "file":  "4s.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/4s.png",
+                      "sha256":  "4dc1004e0d4313c0ba82018f7042bb45f88b4d825fcfbef1dcb160bcfe05bc98"
+                  },
+                  {
+                      "file":  "5s.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/5s.png",
+                      "sha256":  "9d3f3dab9b803a3855b26889f961e74cb63fb4243b36078670d504f0272ba53e"
+                  },
+                  {
+                      "file":  "6s.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/6s.png",
+                      "sha256":  "fbd427ccb1ba6269754ace3fc4f50aed34fa1bf8bacef3bb8b76fd5b0e8f0c00"
+                  },
+                  {
+                      "file":  "7s.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/7s.png",
+                      "sha256":  "2be673ed24e1f27ec0f093f4e39608610e59d1d262e8cbf63172e78f27b4e33e"
+                  },
+                  {
+                      "file":  "8s.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/8s.png",
+                      "sha256":  "453c8c9e4d61ab175678255f7f44e65f20de770d869969e4dffe9e60fbcbd0ba"
+                  },
+                  {
+                      "file":  "9s.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/9s.png",
+                      "sha256":  "513f7f17c3e868696bdb8ca1c361ecb5be2c8620aae82fa04dae25c5d16d249e"
+                  },
+                  {
+                      "file":  "1z.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/1z.png",
+                      "sha256":  "6f701c5d25dc666c8e0dc4adb6fed74ebd2322a30869eaac69414cd7e831db5f"
+                  },
+                  {
+                      "file":  "2z.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/2z.png",
+                      "sha256":  "79839cecc8d3cf116421fbc5f864720760aef504070cb5308c901d5ed76f6ae0"
+                  },
+                  {
+                      "file":  "3z.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/3z.png",
+                      "sha256":  "b2c2b3523917f1e3748d90e807336515f35416f5aa737ddbdd1c3b575def5130"
+                  },
+                  {
+                      "file":  "4z.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/4z.png",
+                      "sha256":  "dbd6fc67a28e9050f9ee432557ece5f2f477b140a7edfd56076857d1dc2faa52"
+                  },
+                  {
+                      "file":  "5z.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/5z.png",
+                      "sha256":  "61df12004d24da4a1833bb3665a758c7cacf43b5810229cdaecd4f24fb90e5a9"
+                  },
+                  {
+                      "file":  "6z.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/6z.png",
+                      "sha256":  "02e86fe546d2236d7ebcbcb774b858df86d2976527e36b4c4fbeb47ee508dfbb"
+                  },
+                  {
+                      "file":  "7z.png",
+                      "upstream":  "PNG 位图/默认风格 default style/竖 vertical/7z.png",
+                      "sha256":  "c2fdaae9f5fddb4609b8a67fb7a807e9e62e9adf56f94a318f0519fd5dc461dc"
+                  },
+                  {
+                      "file":  "back.png",
+                      "upstream":  "PNG 位图/默认风格 default style/背面 back/b_02.png",
+                      "sha256":  "3bf4591bdcc17bf00fd527aa9d261b8133ccfbf7badc2eb97ea81424ab7bbae5"
+                  }
+              ]
+}

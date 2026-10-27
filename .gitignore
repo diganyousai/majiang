@@ -1,0 +1,25 @@
+# Keep this repository limited to source code and project documentation.
+/*
+!/.gitignore
+!/.gitattributes
+!/README.md
+!/work.md
+!/QingzhuMahjongSource/
+
+/QingzhuMahjongSource/*
+!/QingzhuMahjongSource/src/
+!/QingzhuMahjongSource/tools/
+!/QingzhuMahjongSource/licenses/
+!/QingzhuMahjongSource/*.md
+!/QingzhuMahjongSource/build.ps1
+
+**/.env
+**/.env.*
+**/*.log
+**/*.class
+**/*.jar
+**/*.exe
+**/*.zip
+**/*.sha256
+**/.DS_Store
+**/Thumbs.db
