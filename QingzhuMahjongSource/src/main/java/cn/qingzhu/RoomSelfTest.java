@@ -21,7 +21,10 @@ public final class RoomSelfTest {
         final RoomClient client; final BlockingQueue<Message> messages=new LinkedBlockingQueue<>();
         private long nextCommand;
         Peer(RoomServer server,String nick,String token) {
-            client=new RoomClient(new RoomClient.Address("127.0.0.1",server.port(),server.room(),"test-123456",nick,token));
+            this(server,nick,token,PlayerIdentityStore.memory());
+        }
+        Peer(RoomServer server,String nick,String token,PlayerIdentityStore identities) {
+            client=new RoomClient(new RoomClient.Address("127.0.0.1",server.port(),server.room(),"test-123456",nick,token),identities);
             client.listen(messages::add,s->{}); client.start();
         }
         void send(Command command)throws InterruptedException {
@@ -224,11 +227,108 @@ public final class RoomSelfTest {
             check(reply.type()==Reply.WELCOME&&reply.snapshot().seat()!=0,"Known host label and nickname cannot claim creator seat");
         }
     }
+    private static void automaticSeats(Path output)throws Exception {
+        Path profiles=Files.createTempDirectory(output,"seat-identities-");
+        Peer[] peers=new Peer[4];
+        try(RoomServer server=new RoomServer("127.0.0.1",0,"654321","test-123456","房主",Rules.friends())) {
+            try {
+                for(int i=0;i<4;i++) {
+                    peers[i]=new Peer(server,i==0?"房主":"玩家"+i,i==0?server.hostToken():"",new PlayerIdentityStore(profiles));
+                    final int seat=i; await(()->peers[seat].client.snapshot()!=null,"persistent player joins "+i);
+                }
+                peers[2].close(); await(()->!peers[0].client.snapshot().seats().get(2).occupied(),"lobby offline seat available");
+                peers[2]=new Peer(server,"玩家2","",new PlayerIdentityStore(profiles));
+                await(()->peers[2].client.snapshot()!=null,"lobby return without token");
+                check(peers[2].client.snapshot().seat()==2,"Saved player identity restores the original lobby seat without a recovery code");
+                peers[1].close(); await(()->!peers[0].client.snapshot().seats().get(1).occupied(),"lobby vacancy visible");
+                peers[1]=new Peer(server,"新玩家","",new PlayerIdentityStore(profiles));
+                await(()->peers[1].client.snapshot()!=null,"new player reuses offline lobby seat");
+                check(peers[1].client.snapshot().seat()==1,"Offline pre-game seats never permanently block newcomers");
+                stable(peers);
+                for(Peer peer:peers) peer.ack(peer.client.ready(true));
+                await(()->peers[0].client.snapshot().game()!=null,"persistent room starts"); Snapshot before=stable(peers);
+                peers[2].close(); await(()->peers[0].client.snapshot().stage()==Stage.PAUSED,"active disconnect pauses");
+                try(Peer impostor=new Peer(server,"玩家2","",PlayerIdentityStore.memory())) {
+                    await(impostor.client::isClosed,"same nickname cannot impersonate saved identity");
+                    check(impostor.client.snapshot()==null,"A nickname alone cannot reveal another player's hand");
+                    check(impostor.messages.stream().anyMatch(m->m.code().equals("ROOM_FULL")),"Unrelated identity cannot take an active seat");
+                }
+                peers[2]=new Peer(server,"玩家2","",new PlayerIdentityStore(profiles));
+                await(()->peers[2].client.snapshot()!=null&&peers[0].client.snapshot().stage()==Stage.PLAYING,"new client automatically restores active seat");
+                Snapshot restored=stable(peers);
+                check(peers[2].client.snapshot().seat()==2&&restored.game().equals(before.game()),"Closing and recreating the client preserves the seat, hand and round");
+                check(restored.context()==before.context(),"Automatic restoration keeps the action window");
+                peers[0].close(); await(()->peers[1].client.snapshot().stage()==Stage.PAUSED,"host player closes");
+                peers[0]=new Peer(server,"房主","",new PlayerIdentityStore(profiles));
+                await(()->peers[0].client.snapshot()!=null,"host identity restores without manual token");
+                check(stable(peers).seat()==0,"Creator's bound local identity restores seat zero"); privacy(peers);
+            } finally { for(Peer peer:peers) if(peer!=null) peer.close(); }
+        }
+        try(RoomServer server=new RoomServer("127.0.0.1",0,"654321","test-123456","房主",Rules.friends());
+            Peer returning=new Peer(server,"玩家2","",new PlayerIdentityStore(profiles))) {
+            await(()->returning.client.snapshot()!=null,"same identity enters a newly created room");
+            check(returning.client.snapshot().seat()==1,"A new room does not fail with a stale saved recovery token");
+        }
+    }
+    private static Game tingFixture(Rules rules) {
+        Game game=new Game(42,rules,List.of("房主","玩家1","玩家2","玩家3"));
+        List<Integer> hand=List.of(0,1,2,9,10,11,18,19,20,28,31,31,31,31);
+        List<Integer> pool=new ArrayList<>(); for(int tile=0;tile<34;tile++) for(int n=0;n<4;n++) pool.add(tile);
+        for(int tile:hand) pool.remove(Integer.valueOf(tile)); Collections.shuffle(pool,new Random(42));
+        for(int seat=0;seat<4;seat++) {
+            Game.Player player=game.players[seat]; player.hand.clear();
+            if(seat==0) player.hand.addAll(hand);
+            else for(int n=0;n<13;n++) player.hand.add(pool.removeLast());
+            player.drawn=seat==0?31:-1;
+        }
+        game.wall.clear(); game.wall.addAll(pool); game.players[0].ting=true;
+        List<Integer> waiting=new ArrayList<>(hand); waiting.remove(Integer.valueOf(31));
+        game.players[0].lockedWaits=game.handRules.waits(waiting,List.of(),3);
+        game.invalidate(); game.checkInvariants(); return game;
+    }
+    private static void tingOverWire()throws Exception {
+        for(boolean kong:List.of(false,true)) tingOverWire(kong);
+    }
+    private static void tingOverWire(boolean kong)throws Exception {
+        Peer[] peers=new Peer[4]; PlayerIdentityStore identities=PlayerIdentityStore.memory();
+        Rules rules=kong?Rules.coins():Rules.friends();
+        try(RoomServer server=new RoomServer("127.0.0.1",0,"654321","test-123456","房主",rules,()->tingFixture(rules))) {
+            try {
+                for(int i=0;i<4;i++) {
+                    peers[i]=new Peer(server,i==0?"房主":"玩家"+i,i==0?server.hostToken():"",identities);
+                    final int seat=i; await(()->peers[seat].client.snapshot()!=null,"ting fixture joins "+i);
+                }
+                for(Peer peer:peers) peer.ack(peer.client.ready(true));
+                await(()->peers[0].client.snapshot().game()!=null,"ting fixture begins"); Snapshot initial=stable(peers);
+                check(initial.game().actions().stream().filter(a->a.kind()==Game.Kind.DISCARD).toList().equals(List.of(new Game.Action(Game.Kind.DISCARD,31))),"Reported client can discard only the drawn tile");
+                check(initial.game().actions().contains(new Game.Action(Game.Kind.CONCEALED_KONG,31)),"Reported client receives a legal wait-preserving kong");
+                for(Game.Action forbidden:List.of(new Game.Action(Game.Kind.DISCARD,0),new Game.Action(Game.Kind.ADDED_KONG,31),new Game.Action(Game.Kind.TING,31))) {
+                    Command request=Command.act(UUID.randomUUID().toString(),initial.game().round(),initial.context(),forbidden);
+                    peers[0].send(request); check(peers[0].ack(request.id()).code().equals("INVALID_ACTION"),"Server rejects remote attempts to change a reported hand");
+                }
+                check(stable(peers).game().equals(initial.game()),"Rejected remote changes leave the reported hand untouched");
+                check(peers[0].ack(peers[0].client.act(new Game.Action(kong?Game.Kind.CONCEALED_KONG:Game.Kind.DISCARD,31))).code().equals("OK"),"Reported player can discard or make a legal kong");
+                await(()->peers[0].client.snapshot().game().revision()>initial.game().revision(),"ting draw discarded"); stable(peers);
+                List<Integer> expected=new ArrayList<>(initial.game().self().hand());
+                for(int n=0;n<(kong?4:1);n++) expected.remove(Integer.valueOf(31));
+                if(kong) {
+                    expected.add(peers[0].client.snapshot().game().self().drawn());
+                    check(peers[0].client.snapshot().game().self().melds().getFirst().kind()==Game.Kind.CONCEALED_KONG,"Legal ting kong is applied over TCP");
+                    check(peers[0].client.snapshot().game().players().stream().map(Game.PlayerView::score).toList().equals(List.of(60L,-20L,-20L,-20L)),"Ting kong uses ordinary realtime coin scoring");
+                } else Collections.sort(expected);
+                check(peers[0].client.snapshot().game().self().hand().equals(expected),"Wire action changes the locked hand only by the drawn discard or declared kong");
+                peers[0].close(); await(()->peers[1].client.snapshot().stage()==Stage.PAUSED,"ting player offline");
+                peers[0]=new Peer(server,"房主","",identities);
+                await(()->peers[0].client.snapshot()!=null,"ting player restores automatically"); stable(peers);
+                check(peers[0].client.snapshot().game().self().ting()&&peers[0].client.snapshot().game().self().hand().equals(expected),"Automatic seat restoration preserves reported status and the locked hand");
+            } finally { for(Peer peer:peers) if(peer!=null) peer.close(); }
+        }
+    }
     public static void run(Path output)throws Exception {
         checks=games=multiResponses=0; long start=System.nanoTime(); Files.createDirectories(output);
         Files.deleteIfExists(output.resolve("network-report.json"));
         try {
-            hostIdentity(); room(Rules.friends(),4,true); room(Rules.coins(),2,false); simultaneous();
+            hostIdentity(); automaticSeats(output); tingOverWire(); room(Rules.friends(),4,true); room(Rules.coins(),2,false); simultaneous();
             String result="PASS network: "+checks+" checks; "+games+" full four-client rounds; "+multiResponses+" multi-responder windows; "+String.format(Locale.ROOT,"%.2f",(System.nanoTime()-start)/1e9)+" seconds";
             Files.writeString(output.resolve("network-results.txt"),result+"\n");
             Files.writeString(output.resolve("network-report.json"),"{\"status\":\"passed\",\"checks\":"+checks+",\"rounds\":"+games+",\"multiResponderWindows\":"+multiResponses+"}\n");

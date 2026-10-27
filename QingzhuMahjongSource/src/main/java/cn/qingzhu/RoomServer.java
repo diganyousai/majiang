@@ -27,7 +27,7 @@ public final class RoomServer implements AutoCloseable {
     private boolean broken;
     private record Cached(Command command,Message result) {}
     private static final class Session {
-        final int seat; final String name,token,joinId;
+        final int seat; final String name,token; String joinId;
         Connection link; boolean ready;
         final Map<String,Cached> processed=new LinkedHashMap<>() {
             @Override protected boolean removeEldestEntry(Map.Entry<String,Cached> e) { return size()>4096; }
@@ -41,7 +41,7 @@ public final class RoomServer implements AutoCloseable {
     RoomServer(String bind,int port,String room,String password,String hostName,Rules rules,Supplier<Game> initialGame)throws IOException {
         if(!room.matches("[A-Za-z0-9]{4,12}")||password.length()<6||password.length()>64) throw new IllegalArgumentException("房间号需4～12位字母数字，口令需6～64位");
         validateName(hostName); this.room=room; this.password=password; this.rules=Objects.requireNonNull(rules); this.initialGame=initialGame;
-        seats[0]=new Session(0,hostName,secret(),"host");
+        seats[0]=new Session(0,hostName,secret(),"");
         listener=new ServerSocket(); listener.setReuseAddress(true);
         try { listener.bind(new InetSocketAddress(bind,port)); } catch(IOException e) { listener.close(); throw e; }
         Thread.startVirtualThread(this::accept);
@@ -161,13 +161,17 @@ public final class RoomServer implements AutoCloseable {
         Session selected=null;
         if(!command.token().isEmpty()) {
             for(Session s:seats) if(s!=null&&s.token.equals(command.token())) selected=s;
-            if(selected==null) { c.rejectAndClose("INVALID_TOKEN","恢复码无效，请检查房间是否已重建"); return; }
+            if(selected==null) { c.rejectAndClose("INVALID_TOKEN","房间身份已失效，请重新加入当前房间"); return; }
+            selected.joinId=command.id();
         } else {
-            for(Session s:seats) if(s!=null&&s.seat!=0&&s.joinId.equals(command.id())&&s.name.equals(command.nickname())) selected=s;
+            for(Session s:seats) if(s!=null&&!s.joinId.isEmpty()&&s.joinId.equals(command.id())) selected=s;
             if(selected==null) for(int i=1;i<4;i++) if(seats[i]==null) { selected=new Session(i,command.nickname(),secret(),command.id()); seats[i]=selected; break; }
-            if(selected==null) { c.rejectAndClose("ROOM_FULL","四个座位已占用，请使用原座位恢复码重连"); return; }
+            if(selected==null&&game==null) for(int i=1;i<4;i++) if(seats[i].link==null||seats[i].link.ended.get()) {
+                selected=new Session(i,command.nickname(),secret(),command.id()); seats[i]=selected; break;
+            }
+            if(selected==null) { c.rejectAndClose("ROOM_FULL","四个座位已占用；原玩家请在原电脑使用相同昵称重新加入"); return; }
         }
-        if(selected.link!=null&&selected.link!=c) selected.link.rejectAndClose("REPLACED","同一座位已从另一连接恢复，本窗口停止重连");
+        if(selected.link!=null&&selected.link!=c) selected.link.rejectAndClose("REPLACED","该玩家已从另一窗口重新加入，本窗口停止重连");
         selected.link=c; c.session=selected; revision++;
         c.send(new Message(Reply.WELCOME,command.id(),"OK","",selected.token,snapshot(selected))); broadcast();
     }
@@ -181,7 +185,11 @@ public final class RoomServer implements AutoCloseable {
     }
     private Snapshot snapshot(Session self) {
         List<Seat> players=new ArrayList<>();
-        for(Session s:seats) players.add(s==null?new Seat("空座位",false,false,false):new Seat(s.name,true,s.link!=null&&!s.link.ended.get(),s.ready));
+        for(Session s:seats) {
+            boolean online=s!=null&&s.link!=null&&!s.link.ended.get();
+            boolean available=s==null||game==null&&s.seat!=0&&!online;
+            players.add(available?new Seat("空座位",false,false,false):new Seat(s.name,true,online,s.ready));
+        }
         return new Snapshot(room,self.seat,revision,context,stage(),players,rules.description(),game==null?null:game.view(self.seat));
     }
     private void sendSnapshot(Session s) { if(s.link!=null) s.link.send(new Message(Reply.SNAPSHOT,"","","","",snapshot(s))); }

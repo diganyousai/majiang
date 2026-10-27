@@ -125,10 +125,40 @@ public final class EngineTest {
         g=arrange(plain(true),Map.of(0,list(31,31,31,31,0,1,2,9,10,11,18,19,20,28)),Map.of());
         g.players[0].drawn=31; ting(g,0);
         check(g.players[0].lockedWaits.equals(Set.of(28)),"Fixture single honor wait");
-        check(has(g,0,Kind.CONCEALED_KONG,31),"Ting concealed kong keeps waits");
+        check(has(g,0,Kind.CONCEALED_KONG,31),"Ting permits concealed kong when waits stay the same");
         check(!has(g,0,Kind.DISCARD,0)&&has(g,0,Kind.DISCARD,31),"Ting hand locked to drawn tile");
-        g.act(0,new Action(Kind.CONCEALED_KONG,31)); g.checkInvariants();
-        check(g.players[0].ting&&g.players[0].lockedWaits.equals(Set.of(28)),"Kong keeps report state");
+        View locked=g.view(0);
+        for(Action illegal:List.of(new Action(Kind.DISCARD,0),new Action(Kind.TING,31))) {
+            try { g.act(0,illegal); throw new AssertionError("Ting shape change accepted"); }
+            catch(IllegalArgumentException expected) { check(g.view(0).equals(locked),"Rejected ting mutation leaves full snapshot unchanged"); }
+        }
+        List<Integer> lockedHand=new ArrayList<>(g.players[0].hand); lockedHand.remove(Integer.valueOf(31));
+        Collections.sort(lockedHand);
+        g.act(0,new Action(Kind.DISCARD,31)); g.checkInvariants();
+        check(g.players[0].hand.equals(lockedHand)&&g.players[0].lockedWaits.equals(Set.of(28)),"Discarding the drawn tile retains the exact reported shape and waits");
+        g=arrange(plain(true),Map.of(0,list(31,31,31,31,0,1,2,9,10,11,18,19,20,28)),Map.of());
+        g.players[0].drawn=31; ting(g,0); g.act(0,new Action(Kind.CONCEALED_KONG,31)); g.checkInvariants();
+        check(g.players[0].lockedWaits.equals(Set.of(28)),"Ting concealed kong retains reported waits");
+        check(Scoring.deltas(Scoring.gang(g.rules,g.gangs.getLast())).equals(List.of(60L,-20L,-20L,-20L)),"Ting concealed kong has the ordinary two-times tile-value payment");
+        g=arrange(plain(true),Map.of(0,list(28),1,list(31,31,31,0,1,2,9,10,11,18,19,20,28)),Map.of()); ting(g,1);
+        g.act(0,new Action(Kind.DISCARD,28));
+        check(has(g,1,Kind.WIN,28),"Ting still permits legal discard win");
+        g=arrange(plain(true),Map.of(0,list(31),1,list(31,31,31,0,1,2,9,10,11,18,19,20,28)),Map.of()); ting(g,1);
+        g.act(0,new Action(Kind.DISCARD,31));
+        check(has(g,1,Kind.KONG,31)&&!has(g,1,Kind.PONG,31),"Ting permits a wait-preserving direct kong but not pong");
+        g.act(1,new Action(Kind.KONG,31)); passAll(g); g.checkInvariants();
+        check(g.players[1].lockedWaits.equals(Set.of(28))&&Scoring.deltas(Scoring.gang(g.rules,g.gangs.getLast())).equals(List.of(-30L,30L,0L,0L)),"Ting direct kong retains waits and ordinary source-liability scoring");
+        g=arrange(plain(true),Map.of(0,list(31,0,1,2,9,10,11,18,19,20,28)),Map.of(0,List.of(new Meld(Kind.PONG,list(31,31,31),3))));
+        g.players[0].drawn=31; ting(g,0);
+        check(has(g,0,Kind.ADDED_KONG,31),"Ting permits a wait-preserving added kong");
+        g.act(0,new Action(Kind.ADDED_KONG,31)); passAll(g); g.checkInvariants();
+        check(g.players[0].lockedWaits.equals(Set.of(28))&&Scoring.deltas(Scoring.gang(g.rules,g.gangs.getLast())).equals(List.of(30L,-10L,-10L,-10L)),"Ting added kong retains waits and ordinary one-times tile-value payment");
+        // The old 1111m + 23m can be transformed into a kong + newly drawn 4m,
+        // preserving the same wait but changing 123m to 234m. That is a hand swap.
+        g=arrange(plain(true),Map.of(0,list(0,0,0,0,1,2,9,9,9,18,18,18,28,3)),Map.of()); ting(g,0);
+        List<Integer> swapped=new ArrayList<>(g.players[0].hand); for(int n=0;n<4;n++) swapped.remove(Integer.valueOf(0));
+        check(g.handRules.waits(swapped,List.of(new Meld(Kind.CONCEALED_KONG,list(0,0,0,0),0)),3).equals(g.players[0].lockedWaits),"Swap fixture keeps waits while replacing a sequence tile");
+        check(!has(g,0,Kind.CONCEALED_KONG,0)&&has(g,0,Kind.DISCARD,3),"Ting cannot conceal an old quad to absorb an unrelated drawn tile");
         // Five-pair shape: removing a natural triplet to form a kong destroys the seven-pair wait.
         g=arrange(lowTing,Map.of(0,list(31,31,31,31,0,0,9,9,13,13,22,22,27,27)),Map.of());
         g.players[0].drawn=31; ting(g,0);
@@ -277,13 +307,32 @@ public final class EngineTest {
         g.act(0,new Action(Kind.DISCARD,g.players[0].hand.getLast())); passAll(g);
         check(g.phase==Phase.OVER&&g.result.winner()==-1&&g.view(0).players().stream().allMatch(p->p.hand().size()==p.handCount()),"Drawn round also exposes all four hands");
     }
+    private static void tingSelection()throws Exception {
+        Game game=arrange(plain(true),Map.of(0,list(0,1,2,9,10,11,18,19,20,28,31,31,31,31)),Map.of());
+        ting(game,0);
+        javax.swing.SwingUtilities.invokeAndWait(()->{
+            Board board=new Board(); board.view=game.view(0); board.setSize(Board.WIDTH,Board.HEIGHT);
+            var image=new java.awt.image.BufferedImage(Board.WIDTH,Board.HEIGHT,java.awt.image.BufferedImage.TYPE_INT_RGB);
+            java.awt.Graphics2D graphics=image.createGraphics(); board.paint(graphics); graphics.dispose();
+            for(int index:List.of(0,10)) {
+                java.awt.Rectangle tile=board.screenTileBounds(index);
+                board.dispatchEvent(new java.awt.event.MouseEvent(board,java.awt.event.MouseEvent.MOUSE_CLICKED,System.currentTimeMillis(),0,
+                    tile.x+tile.width/2,tile.y+tile.height/2,1,false,java.awt.event.MouseEvent.BUTTON1));
+                check(board.selected==-1,"Ting old cards are not selectable, including an identical copy of the drawn tile");
+            }
+            java.awt.Rectangle drawn=board.screenTileBounds(13);
+            board.dispatchEvent(new java.awt.event.MouseEvent(board,java.awt.event.MouseEvent.MOUSE_CLICKED,System.currentTimeMillis(),0,
+                drawn.x+drawn.width/2,drawn.y+drawn.height/2,1,false,java.awt.event.MouseEvent.BUTTON1));
+            check(board.selected==13,"Ting drawn card remains selectable");
+        });
+    }
     public static void main(String[] args)throws Exception {
         long started=System.nanoTime(); int oracle=0;
         for(String row:Files.readAllLines(Path.of(args[0]))) {
             String[] f=row.split("\t"); int[] c=f[0].chars().map(n->n-'0').toArray(); int actual=Shanten.calculate(c,!f[1].equals("1"));
             check(actual==Integer.parseInt(f[2]),"Upstream oracle "+oracle); check((actual==-1)==f[3].equals("1"),"Shape oracle "+oracle); oracle++;
         }
-        shapes(); stateMachine(); ledger(); windMouthWins(); endRoundReveal();
+        shapes(); stateMachine(); ledger(); windMouthWins(); endRoundReveal(); tingSelection();
         for(int seed=0;seed<12;seed++) runToEnd(new Game(seed,seed%2==0?Rules.friends():Rules.coins()),true);
         for(int seed=0;seed<64;seed++) {
             Rules.Wild w=Rules.Wild.values()[seed%4];

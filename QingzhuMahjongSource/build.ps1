@@ -69,7 +69,7 @@ if (Test-Path -LiteralPath $appDir) {
 }
 Invoke-Jdk jpackage @('--type', 'app-image', '--name', 'QingzhuKouDianDianOnline', '--dest', 'dist', '--input', 'build/input',
     '--main-jar', 'qingzhu-mahjong.jar', '--main-class', 'cn.qingzhu.Main', '--runtime-image', $runtime,
-    '--icon', 'src/main/resources/assets/icon.ico', '--app-version', '2.2.1', '--vendor', 'Qingzhu',
+    '--icon', 'src/main/resources/assets/icon.ico', '--app-version', '2.2.2', '--vendor', 'Qingzhu',
     '--description', 'Shanxi Kou Dian Dian Mahjong - four player online rooms', '--java-options', '-Xmx512m',
     '--java-options', '-Dfile.encoding=UTF-8')
 
@@ -84,8 +84,8 @@ Copy-Item -LiteralPath 'tools/test-network.cmd' -Destination $appDir
 Copy-Item -LiteralPath 'tools/play.cmd' -Destination $appDir
 Copy-Item -LiteralPath 'build/visual/tile-catalog.png' -Destination $appDir
 Copy-Item -LiteralPath 'ARTWORK.md' -Destination $appDir
-if (Test-Path -LiteralPath 'validation/final-ui-2.2.1/online-smoke-report.json') {
-    Copy-Item -LiteralPath 'validation/final-ui-2.2.1/online-smoke-report.json' -Destination $appDir
+if (Test-Path -LiteralPath 'validation/final-ui-2.2.2/online-smoke-report.json') {
+    Copy-Item -LiteralPath 'validation/final-ui-2.2.2/online-smoke-report.json' -Destination $appDir
 }
 $sourceZip = Join-Path $appDir 'source.zip'
 $sourceItems = @('src','tools','build.ps1','README.md','ARTWORK.md','RULES_AUDIT.md','MULTIPLAYER_TEST.md','ONLINE_DESIGN.md','THIRD_PARTY_NOTICES.md','licenses')
@@ -96,6 +96,6 @@ $hashes = @('QingzhuKouDianDianOnline.exe','app/qingzhu-mahjong.jar') | ForEach-
     $hash.Hash.ToLowerInvariant() + '  ' + $_
 }
 $hashes | Set-Content -LiteralPath (Join-Path $appDir 'SHA256SUMS.txt') -Encoding ASCII
-Compress-Archive -LiteralPath $appDir -DestinationPath 'dist/QingzhuKouDianDianOnline-2.2.1-Windows-x64.zip' -Force
-& (Join-Path $projectRoot 'tools/verify-package.ps1') -Archive (Join-Path $projectRoot 'dist/QingzhuKouDianDianOnline-2.2.1-Windows-x64.zip') -AppDirectory $appDir
+Compress-Archive -LiteralPath $appDir -DestinationPath 'dist/QingzhuKouDianDianOnline-2.2.2-Windows-x64.zip' -Force
+& (Join-Path $projectRoot 'tools/verify-package.ps1') -Archive (Join-Path $projectRoot 'dist/QingzhuKouDianDianOnline-2.2.2-Windows-x64.zip') -AppDirectory $appDir
 Write-Output "Ready: $appDir\QingzhuKouDianDianOnline.exe"

@@ -158,6 +158,8 @@ public final class GameWindow extends JFrame {
     void refresh() {
         View v = game.view(0);
         if (selectedRevision != v.revision()) { board.selected = -1; selectedRevision = v.revision(); }
+        if(v.self().ting()&&v.phase()==Phase.DISCARD&&v.current()==v.viewer()&&v.self().drawn()>=0)
+            board.selected=v.self().hand().size()-1;
         board.view = v; board.paused = pause.isSelected(); board.auto = auto.isSelected(); board.repaint();
         roundLabel.setText("第 " + v.round() + " 局  ·  " + v.remaining() + " 张");
         for (int i = 0; i < 4; i++) scores[i].setText(v.players().get(i).name() + "   "
@@ -190,7 +192,8 @@ public final class GameWindow extends JFrame {
         else if (auto.isSelected()) message = "托管中";
         else if (!ownTurn && !v.actions().isEmpty()) message = v.phase() == Phase.ROB_KONG ? "可以抢杠胡" :
             v.players().get(v.lastSource()).name() + "打出" + Tiles.name(v.lastTile()) + "，等待你应牌";
-        else if (ownTurn) message = board.selected >= 0 ? "已选：" + Tiles.name(v.self().hand().get(board.selected)) : "轮到你出牌";
+        else if (ownTurn) message = v.self().ting()?"已报听：只能打刚摸到的牌；可胡、可杠（听口不变），不能碰或换听":
+            board.selected >= 0 ? "已选：" + Tiles.name(v.self().hand().get(board.selected)) : "轮到你出牌";
         else message = v.events().isEmpty() ? " " : v.events().getLast();
         status.setText(message);
         if (v.phase() == Phase.OVER && shownResultRound != v.round()) { shownResultRound = v.round(); showResult(v); }

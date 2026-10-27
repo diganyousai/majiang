@@ -32,13 +32,14 @@ public final class RoomSmoke {
     }
     public static void run(Path folder,boolean nativeMouse)throws Exception {
         Files.createDirectories(folder); checks.clear(); MultiplayerWindow[] windows=new MultiplayerWindow[4];
+        PlayerIdentityStore identities=PlayerIdentityStore.memory();
         Files.deleteIfExists(folder.resolve("online-smoke-report.json"));
         try(RoomServer server=new RoomServer("127.0.0.1",0,"765432","smoke-123456","房主",Rules.friends())) {
             try {
                 for(int i=0;i<4;i++) {
                     final int seat=i;
                     edt(()->{
-                        windows[seat]=new MultiplayerWindow(new RoomClient.Address("127.0.0.1",server.port(),server.room(),"smoke-123456",seat==0?"房主":"玩家"+seat,seat==0?server.hostToken():""));
+                        windows[seat]=new MultiplayerWindow(new RoomClient.Address("127.0.0.1",server.port(),server.room(),"smoke-123456",seat==0?"房主":"玩家"+seat,seat==0?server.hostToken():""),identities);
                         Rectangle available=GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
                         windows[seat].setSize(Math.min(1060,available.width),Math.min(760,available.height));
                         windows[seat].setLocation(available.x,available.y); windows[seat].setVisible(true); windows[seat].connect();
@@ -90,15 +91,15 @@ public final class RoomSmoke {
                 edt(()->{ capture(windows[0].getContentPane(),folder.resolve("online-after-click.png")); check(clicked.get()==1,input+" fires discard button"); });
                 await(()->windows[0].client.snapshot().game().revision()>revision,"wire discard",10); check(true,input+" submits through room server");
                 edt(()->windows[0].setAlwaysOnTop(false));
-                String token=windows[2].client.token(); edt(()->windows[2].dispose());
+                edt(()->windows[2].dispose());
                 await(()->windows[0].client.snapshot().stage()==RoomProtocol.Stage.PAUSED,"offline pause",10);
                 edt(()->{ check(windows[0].board.paused,"offline pause visible"); capture(windows[0].getContentPane(),folder.resolve("online-paused.png")); });
                 edt(()->{
-                    windows[2]=new MultiplayerWindow(new RoomClient.Address("127.0.0.1",server.port(),server.room(),"smoke-123456","恢复玩家",token));
+                    windows[2]=new MultiplayerWindow(new RoomClient.Address("127.0.0.1",server.port(),server.room(),"smoke-123456","玩家2",""),identities);
                     windows[2].setVisible(true); windows[2].connect();
                 });
                 await(()->windows[2].client.snapshot()!=null&&windows[0].client.snapshot().stage()==RoomProtocol.Stage.PLAYING,"rejoin",10);
-                check(windows[2].client.snapshot().seat()==2,"closed client resumes original seat");
+                check(windows[2].client.snapshot().seat()==2,"closed client resumes original seat automatically without recovery code");
                 edt(()->{ for(MultiplayerWindow w:windows) w.auto.doClick(); });
                 await(()->java.util.Arrays.stream(windows).allMatch(w->w.client.snapshot().stage()==RoomProtocol.Stage.SETTLED),"four online clients finish round",180);
                 edt(()->{

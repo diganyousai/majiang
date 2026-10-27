@@ -43,7 +43,11 @@ public final class Board extends JPanel {
     }
     private int tileIndex(Point p) {
         Point local = new Point((int)((p.x - offsetX) / scale), (int)((p.y - offsetY) / scale));
-        for (int i = 0; i < hitBoxes.size(); i++) if (hitBoxes.get(i).contains(local)) return i;
+        for (int i = 0; i < hitBoxes.size(); i++) if (hitBoxes.get(i).contains(local)) {
+            if(view!=null&&view.self().ting()&&(view.phase()!=Phase.DISCARD||view.current()!=view.viewer()
+                ||view.self().drawn()<0||i!=view.self().hand().size()-1)) return -1;
+            return i;
+        }
         return -1;
     }
     @Override public String getToolTipText(MouseEvent e) {

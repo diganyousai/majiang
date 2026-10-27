@@ -62,7 +62,7 @@ public final class Rules {
     public String description() {
         return title() + " · 136张 · 不可吃 · " + (requireTing ? "须报听" : "无需报听")
             + " · 报听门槛" + minTing + "点\n1/2点不胡，3/4/5点仅自摸，6～10点可点炮；一炮一胡。\n"
-            + "报听后锁定听口、不可碰，杠前后听口必须相同。\n"
+            + "报听后不可碰、不可换手牌，平时只能打刚摸到的牌；听口不变时可杠，按普通杠计分。\n"
             + "牌型计分：" + new String[]{"关闭","翻倍","加点"}[scoring.ordinal()] + "；耗子："
             + new String[]{"关闭","捉耗子","风耗子","捉双耗子"}[wild.ordinal()] + "\n"
             + "点杠：" + new String[]{"听前杠包杠","点杠者包杠","点杠者不包杠"}[gangPolicy.ordinal()]

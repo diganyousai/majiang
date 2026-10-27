@@ -9,7 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public final class Artwork {
-    public static final String APP_VERSION = "2.2.1";
+    public static final String APP_VERSION = "2.2.2";
     public static final Color GOLD = new Color(0xE4BE78), LIGHT = new Color(0xF4F5F7);
     public static final Color MUTED = new Color(0xB9CBCB), INK = new Color(0x182641);
     public static final Color NAVY = new Color(0x152342), PAPER = new Color(0xF4F5F7);

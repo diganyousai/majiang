@@ -12,7 +12,7 @@ import static cn.qingzhu.RoomProtocol.*;
 public final class RoomClient implements AutoCloseable {
     public record Address(String host,int port,String room,String password,String nickname,String token) {}
     private final Address address;
-    private final String joinId=UUID.randomUUID().toString();
+    private final String joinId;
     private final ConcurrentMap<String,Command> pending=new ConcurrentHashMap<>();
     private final ExecutorService writer=Executors.newSingleThreadExecutor(Thread.ofPlatform().daemon().name("client-writer").factory());
     private final ScheduledExecutorService heartbeat=Executors.newSingleThreadScheduledExecutor(Thread.ofPlatform().daemon().name("client-heartbeat").factory());
@@ -24,7 +24,10 @@ public final class RoomClient implements AutoCloseable {
     private volatile boolean connected;
     private volatile Consumer<Message> listener=m->{};
     private volatile Consumer<String> status=s->{};
-    public RoomClient(Address address) { this.address=address; token=address.token()==null?"":address.token(); }
+    public RoomClient(Address address) { this(address,PlayerIdentityStore.user()); }
+    public RoomClient(Address address,PlayerIdentityStore identities) {
+        this.address=address; joinId=identities.player(address.nickname()); token=address.token()==null?"":address.token();
+    }
     public void listen(Consumer<Message> listener,Consumer<String> status) { this.listener=listener; this.status=status; }
     public Snapshot snapshot() { return snapshot; }
     public String token() { return token; }

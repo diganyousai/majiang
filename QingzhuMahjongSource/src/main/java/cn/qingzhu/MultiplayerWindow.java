@@ -33,8 +33,11 @@ public final class MultiplayerWindow extends JFrame {
     JDialog reviewDialog;
 
     public MultiplayerWindow(RoomClient.Address address) {
+        this(address,PlayerIdentityStore.user());
+    }
+    MultiplayerWindow(RoomClient.Address address,PlayerIdentityStore identities) {
         super("青竹扣点点 " + APP_VERSION + " · 四人联机 · "+address.nickname());
-        client=new RoomClient(address); setIconImage(ICON); setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        client=new RoomClient(address,identities); setIconImage(ICON); setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         Rectangle screen=getGraphicsConfiguration().getBounds(); Insets insets=Toolkit.getDefaultToolkit().getScreenInsets(getGraphicsConfiguration());
         int width=Math.min(1280,screen.width-insets.left-insets.right),height=Math.min(900,screen.height-insets.top-insets.bottom);
         setMinimumSize(new Dimension(Math.min(1000,width),Math.min(720,height))); setSize(width,height); setLocationRelativeTo(null);
@@ -42,10 +45,9 @@ public final class MultiplayerWindow extends JFrame {
         JPanel top=new JPanel(new BorderLayout(12,0)); top.setBorder(new EmptyBorder(12,18,12,18)); top.setBackground(NAVY);
         table.setFont(font(18,true)); table.setForeground(LIGHT); connection.setForeground(GOLD); connection.setFont(font(14,false));
         JPanel tools=new JPanel(new FlowLayout(FlowLayout.RIGHT,8,0)); tools.setOpaque(false);
-        JButton rules=GameWindow.button("规则",false),recovery=GameWindow.button("恢复码",false),retry=GameWindow.button("重新连接",false);
+        JButton rules=GameWindow.button("规则",false),retry=GameWindow.button("重新连接",false);
         rules.addActionListener(e->{ if(latest!=null) showText("当前房间规则",latest.rules()); });
-        recovery.addActionListener(e->showText("本人恢复码（只给自己保存）",client.token().isEmpty()?"加入成功后显示":client.token()+"\n\n关闭本窗口后，可在加入房间的恢复码栏填写此码，回到原座位。"));
-        retry.addActionListener(e->client.reconnect()); tools.add(rules); tools.add(recovery); tools.add(retry);
+        retry.addActionListener(e->client.reconnect()); tools.add(rules); tools.add(retry);
         top.add(table,BorderLayout.WEST); top.add(tools,BorderLayout.EAST); root.add(top,BorderLayout.NORTH);
         JPanel lobby=new JPanel(new BorderLayout(10,16)); lobby.setBorder(new EmptyBorder(28,35,28,35));
         people.setEditable(false); people.setFont(font(20,false)); people.setBackground(lobby.getBackground());
@@ -110,6 +112,8 @@ public final class MultiplayerWindow extends JFrame {
         if(view.phase()!=Phase.OVER&&resultDialog!=null) { resultDialog.dispose(); resultDialog=null; }
         if(view.phase()!=Phase.OVER&&reviewDialog!=null) { reviewDialog.dispose(); reviewDialog=null; }
         if(selectedRevision!=view.revision()) { selectedRevision=view.revision(); board.selected=-1; }
+        if(view.self().ting()&&view.phase()==Phase.DISCARD&&view.current()==view.viewer()&&view.self().drawn()>=0)
+            board.selected=view.self().hand().size()-1;
         boolean usable=client.connected()&&latest.stage()==Stage.PLAYING&&!busy;
         board.view=view; board.paused=latest.stage()==Stage.PAUSED; board.auto=auto.isSelected()||!usable;
         board.repaint();
@@ -127,7 +131,8 @@ public final class MultiplayerWindow extends JFrame {
         actions.add(discard); actions.revalidate(); actions.doLayout(); actions.repaint();
         getContentPane().revalidate();
         status.setText(latest.stage()==Stage.PAUSED?"有人离线，整桌暂停；对方重连后继续":latest.stage()==Stage.SETTLED?"本局已结算，四人准备后开始下一局":
-            busy?"操作提交中…":view.actions().isEmpty()?"等待其他玩家行动":auto.isSelected()?"本人托管中":"轮到你操作，请选择出牌或响应按钮");
+            busy?"操作提交中…":view.actions().isEmpty()?"等待其他玩家行动":auto.isSelected()?"本人托管中":
+                view.self().ting()&&view.phase()==Phase.DISCARD&&view.current()==view.viewer()?"已报听：只能打刚摸到的牌；可胡、可杠（听口不变），不能碰或换听":"轮到你操作，请选择出牌或响应按钮");
         if(view.phase()==Phase.OVER&&shownRound!=view.round()) { shownRound=view.round(); showResult(view); }
         if(auto.isSelected()&&usable&&!view.actions().isEmpty()&&worker==null&&!autoTimer.isRunning()) autoTimer.restart();
     }

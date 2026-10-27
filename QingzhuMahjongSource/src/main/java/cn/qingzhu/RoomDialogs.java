@@ -32,17 +32,18 @@ final class RoomDialogs {
         } catch(Exception e) { JOptionPane.showMessageDialog(null,"开房失败："+e.getMessage(),"检查主机设置",JOptionPane.ERROR_MESSAGE); }
     }
     private static void join() {
-        JTextField host=new JTextField("127.0.0.1"),port=new JTextField("17890"),room=new JTextField(),name=new JTextField("玩家"),token=new JTextField();
+        JTextField host=new JTextField("127.0.0.1"),port=new JTextField("17890"),room=new JTextField(),name=new JTextField("玩家");
         JPasswordField password=new JPasswordField(); JPanel form=new JPanel(new GridLayout(0,2,12,10));
         form.add(new JLabel("主机IP（不要填0.0.0.0）")); form.add(host); form.add(new JLabel("端口")); form.add(port);
         form.add(new JLabel("房间号")); form.add(room); form.add(new JLabel("房间口令")); form.add(password);
-        form.add(new JLabel("你的昵称")); form.add(name); form.add(new JLabel("本人恢复码（首次加入留空）")); form.add(token);
+        form.add(new JLabel("你的昵称（回来时保持相同）")); form.add(name);
+        form.add(new JLabel("自动恢复原座位")); form.add(new JLabel("原电脑、相同昵称，无需恢复码"));
         while(JOptionPane.showConfirmDialog(null,form,"加入联机房间",JOptionPane.OK_CANCEL_OPTION,JOptionPane.PLAIN_MESSAGE)==JOptionPane.OK_OPTION) try {
             int number=Integer.parseInt(port.getText().trim()); if(number<1||number>65535) throw new IllegalArgumentException("端口需1～65535");
             if(host.getText().isBlank()||room.getText().isBlank()||name.getText().isBlank()) throw new IllegalArgumentException("请填主机地址、房间号与昵称");
-            MultiplayerWindow window=new MultiplayerWindow(new RoomClient.Address(host.getText().trim(),number,room.getText().trim(),new String(password.getPassword()),name.getText().trim(),token.getText().trim()));
+            MultiplayerWindow window=new MultiplayerWindow(new RoomClient.Address(host.getText().trim(),number,room.getText().trim(),new String(password.getPassword()),name.getText().trim(),""));
             window.setVisible(true); window.connect(); return;
-        } catch(IllegalArgumentException e) { JOptionPane.showMessageDialog(null,e.getMessage(),"检查加入信息",JOptionPane.WARNING_MESSAGE); }
+        } catch(IllegalArgumentException|IllegalStateException e) { JOptionPane.showMessageDialog(null,e.getMessage(),"检查加入信息",JOptionPane.WARNING_MESSAGE); }
     }
     private static final class HostWindow extends JFrame {
         final RoomServer server; final javax.swing.Timer timer; MultiplayerWindow player;

@@ -128,6 +128,9 @@ public final class Game {
     }
     private boolean kongKeepsWaits(int seat,int tile,Kind kind) {
         Player p=players[seat]; if(!p.ting) return true;
+        // A self-declared kong must use the drawn tile, otherwise an unrelated
+        // new tile could be absorbed into the locked hand while waits happen to match.
+        if(kind!=Kind.KONG&&tile!=p.drawn) return false;
         List<Integer> hand=new ArrayList<>(p.hand); List<Meld> melds=new ArrayList<>(p.melds);
         int remove=kind==Kind.CONCEALED_KONG?4:kind==Kind.KONG?3:1;
         for(int n=0;n<remove;n++) if(!hand.remove(Integer.valueOf(tile))) return false;
