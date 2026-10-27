@@ -12,6 +12,16 @@ Windows x64 桌面麻将程序，当前版本 **2.2.1**。使用 Java 21 / Swing
 
 完整使用说明在 [QingzhuMahjongSource/README.md](QingzhuMahjongSource/README.md)。
 
+## 下载运行
+
+**[下载 Windows x64 程序 ZIP（2.2.1，约 33 MB）](https://github.com/diganyousai/majiang/releases/download/v2.2.1/QingzhuKouDianDianOnline-2.2.1-Windows-x64.zip)**
+
+完整解压后，进入 `QingzhuKouDianDianOnline` 文件夹，运行 `QingzhuKouDianDianOnline.exe` 或 `play.cmd`，无需安装 Java。保留同目录的 `app`、`runtime` 文件夹。
+
+[版本发布页与启动说明](https://github.com/diganyousai/majiang/releases/tag/v2.2.1) · [SHA-256 校验文件](https://github.com/diganyousai/majiang/releases/download/v2.2.1/QingzhuKouDianDianOnline-2.2.1-Windows-x64.zip.sha256)
+
+GitHub 的 **Code → Download ZIP** 以及发布页自动生成的 **Source code** 下载项均为源码；朋友直接运行时请选择上面的 Windows 程序 ZIP。
+
 ## 构建与验证
 
 在 Windows x64 安装 JDK 21+ 后，在仓库根目录执行：
